@@ -87,7 +87,7 @@ class SentryReporterAdapter implements IMessageReporter, ICollectBreadcrumbs, IS
 		if ($exception instanceof \ErrorException) {
 			$severity = $exception->getSeverity();
 
-			// Ignore PHP debug/info/notice/deprecated
+			// Ignore PHP debug/info/notice/deprecated level
 			if (in_array($severity, [
 				E_DEPRECATED,
 				E_USER_DEPRECATED,
