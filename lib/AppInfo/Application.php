@@ -93,6 +93,19 @@ class Application extends App implements IBootstrap {
 								}
 							}
 						}
+						
+						// Filter out specific known deprecation messages
+						$exceptions = $event->getExceptions();
+						if (!empty($exceptions)) {
+							foreach ($exceptions as $exception) {
+								$value = $exception->getValue();
+								// Filter rtrim() deprecation warning
+								if (str_contains($value, 'rtrim():')) {
+									return null;
+								}
+							}
+						}
+						
 						return $event; // send everything else
 					},
 				]);
