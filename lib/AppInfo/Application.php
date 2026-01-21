@@ -76,6 +76,25 @@ class Application extends App implements IBootstrap {
 					'traces_sample_rate' => $config->getSamplingRate(),
 					'profiles_sample_rate' => $config->getProfilesSamplingRate(),
 					'environment' => $config->getEnvironment(),
+					'before_send' => function (\Sentry\Event $event, ?\Sentry\EventHint $hint) {
+						if ($hint !== null && isset($hint->originalException)) {
+							$e = $hint->originalException;
+							if ($e instanceof \ErrorException) {
+								// Drop notices, info, deprecations
+								$severity = $e->getSeverity();
+								if (in_array($severity, [
+									E_DEPRECATED,
+									E_USER_DEPRECATED,
+									E_NOTICE,
+									E_USER_NOTICE,
+									E_STRICT,
+								], true)) {
+									return null; // drop event
+								}
+							}
+						}
+						return $event; // send everything else
+					},
 				]);
 			}
 		});
