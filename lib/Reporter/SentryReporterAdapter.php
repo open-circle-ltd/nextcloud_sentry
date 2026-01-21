@@ -78,14 +78,28 @@ class SentryReporterAdapter implements IMessageReporter, ICollectBreadcrumbs, IS
 	 * @param array $context
 	 */
 	public function report($exception, array $context = []) {
-		if (isset($context['level'])
-			&& $context['level'] < $this->minimumLogLevel) {
-			// TODO: report as breadcrumb instead?
+		// Respect configured minimum log level (existing behavior)
+		if (isset($context['level']) && $context['level'] < $this->minimumLogLevel) {
 			return;
 		}
 
-		$this->setSentryScope($context);
+		// Drop low-severity PHP errors that arrive as ErrorException
+		if ($exception instanceof \ErrorException) {
+			$severity = $exception->getSeverity();
 
+			// Ignore PHP debug/info/notice/deprecated
+			if (in_array($severity, [
+				E_DEPRECATED,
+				E_USER_DEPRECATED,
+				E_NOTICE,
+				E_USER_NOTICE,
+				E_STRICT,
+			], true)) {
+				return;
+			}
+		}
+
+		$this->setSentryScope($context);
 		captureException($exception);
 	}
 
